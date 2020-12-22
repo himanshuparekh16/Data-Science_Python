@@ -1,58 +1,101 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[6]:
+# In[1]:
 
 
-import pandas as pd
+import pandas as pd 
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns 
+from sklearn import preprocessing
 from mlxtend.frequent_patterns import apriori,association_rules
 from mlxtend.preprocessing import TransactionEncoder
 
 
-# In[13]:
+# In[2]:
 
 
-groceries = pd.read_csv('groceries.csv')
-groceries.head()
+data=pd.read_csv("groceries.csv",header=None)
 
 
-# In[14]:
+# In[3]:
 
 
-df=pd.get_dummies(groceries)
-df.head()
+data.head()
 
 
-# In[30]:
+# In[4]:
 
 
-frequent_itemsets = apriori(df, min_support=0.015, use_colnames=True)
+data.dtypes
+
+
+# In[5]:
+
+
+data.fillna(0,inplace=True)
+
+
+# In[6]:
+
+
+def createlist(A_list,value):
+    return list(filter(lambda x:x!=value,A_list))
+
+
+# In[7]:
+
+
+list_all_transaction=[]
+
+for index,row in data.iterrows():
+    transaction=row.values.tolist()
+    transaction=createlist(transaction,0)
+    list_all_transaction.append(transaction)
+    
+list_all_transaction
+
+
+# In[8]:
+
+
+da=TransactionEncoder()
+da_bool=da.fit(list_all_transaction).transform(list_all_transaction)
+data=pd.DataFrame(da_bool,columns=da.columns_)
+
+
+# In[9]:
+
+
+frequent_itemsets=apriori(data,min_support=0.03,use_colnames=True)
 frequent_itemsets
 
 
-# In[35]:
+# In[10]:
 
 
-rules = association_rules(frequent_itemsets, metric="lift", min_threshold=0.05)
-rules
+rules=association_rules(frequent_itemsets, metric="lift",min_threshold=1.5)
+rules=rules.reset_index()
 
 
-# In[36]:
+# In[11]:
 
 
 rules.sort_values('lift',ascending = False)
 
 
-# In[39]:
+# In[12]:
 
 
-rules[rules.lift>1]
+sns.scatterplot(data=rules,x='index',y='lift')
 
 
-# In[ ]:
+# In[13]:
 
 
 
+sns.scatterplot(data=rules,x='index',y='confidence')
 
 
 # In[ ]:
